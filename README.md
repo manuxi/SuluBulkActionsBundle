@@ -78,4 +78,5 @@ Rebuild admin sources:
     }
 ```
 
-Thats maily all.
+Thats mainly all.
+
