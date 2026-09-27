@@ -1,7 +1,7 @@
 # SuluBulkActionsBundle (Sulu 3.x)
 
 Bulk actions for lists in the Sulu admin: mark rows, then publish, unpublish or (optionally) delete them in one go.
-Articles (all groups) and snippets work out of the box; other bundles bring their own handler.
+Articles (all groups), snippets, [testimonials](https://github.com/manuxi/SuluTestimonialsBundle) and [events](https://github.com/manuxi/SuluEventBundle) work out of the box (publish and unpublish); other bundles bring their own handler.
 
 This is the `3.x` branch for Sulu 3.0. The `main` branch is the version for Sulu 2.6.
 
