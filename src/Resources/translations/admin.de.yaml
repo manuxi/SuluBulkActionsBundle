@@ -11,3 +11,4 @@ sulu_bulk_actions:
     delete_confirm_text: "{count} markierte Einträge endgültig löschen?"
     error_title: "Sammelaktion fehlgeschlagen"
     error: "Die Aktion konnte nicht ausgeführt werden."
+    partial: "{done} erledigt, {denied} ohne Berechtigung übersprungen, {failed} fehlgeschlagen."

@@ -24,15 +24,17 @@ composer require manuxi/sulu-bulk-actions-bundle:3.x-dev
 
 ## Permissions
 
-The bundle has its own security context `sulu.bulk_actions.actions` ("Bulk actions" in the role form):
+Two levels, so nobody can do in bulk what they may not do one by one:
 
-| Permission | Allows |
-|---|---|
-| Live | bulk publish and unpublish |
-| Delete | bulk delete (only if `delete_enabled` is on, see below) |
+1. **Switch:** the security context `sulu.bulk_actions.actions` ("BulkActions" in the role form) decides whether a role
+   may use bulk actions at all. "Live" allows publish and unpublish, "Delete" allows delete (only if `delete_enabled`
+   is on, see below). Nobody has it by default; the project fixture gives it to Admin.
+2. **Entries:** every entry is checked against the security context of the entry itself, with the same permission
+   ("Live" or "Delete"). For articles that is the context of the article group (`sulu.article.articles_blog`, ...),
+   for snippets `sulu.snippet.snippets`. Entries without permission are skipped and reported. The dropdown only shows
+   the actions the user may use in that list (for example only in the Blog tab if they have the right for Blog).
 
-Nobody has it by default. Bulk actions are separate from the rights on the single entries, so it is meant for admins.
-The dropdown only appears for users who have the permission, and the endpoint checks it again.
+New article groups need nothing: their contexts already exist in the role form.
 
 ## Configuration
 

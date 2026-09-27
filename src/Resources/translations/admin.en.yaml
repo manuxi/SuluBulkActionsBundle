@@ -11,3 +11,4 @@ sulu_bulk_actions:
     delete_confirm_text: "Permanently delete {count} selected entries?"
     error_title: "Bulk action failed"
     error: "The action could not be executed."
+    partial: "{done} done, {denied} skipped (no permission), {failed} failed."

@@ -66,9 +66,18 @@ export default class BulkActionsToolbarAction extends AbstractListToolbarAction 
         Requester.post(
             `/admin/api/bulk-actions/${this.listStore.resourceKey}/${name}?locale=${locale}`,
             {ids}
-        ).then(action(() => {
+        ).then(action((data) => {
             this.listStore.clearSelection();
             this.listStore.reload();
+
+            // some entries were skipped: no permission for them, or they failed
+            if (data && (data.denied > 0 || data.failed > 0)) {
+                this.errorMessage = translate(`${PREFIX}.partial`, {
+                    done: data.done,
+                    denied: data.denied,
+                    failed: data.failed,
+                });
+            }
         })).catch(action((response) => {
             const fallback = translate(`${PREFIX}.error`);
 

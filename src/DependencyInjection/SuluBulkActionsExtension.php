@@ -55,15 +55,18 @@ class SuluBulkActionsExtension extends Extension implements PrependExtensionInte
         $container->registerForAutoconfiguration(BulkActionHandlerInterface::class)
             ->addTag('sulu_bulk_actions.handler');
 
-        foreach ([
-            'articles' => ArticleBulkActionHandler::class,
-            'snippets' => SnippetBulkActionHandler::class,
-        ] as $resourceKey => $handlerClass) {
-            if (!$this->isInstalled($resourceKey)) {
-                continue;
-            }
+        if ($this->isInstalled('articles')) {
+            $container->setDefinition(ArticleBulkActionHandler::class, (new Definition(ArticleBulkActionHandler::class))
+                ->setArguments([
+                    new Reference(MessageBusInterface::class),
+                    new Reference('sulu_article.article_repository'),
+                    new Reference('sulu_admin.metadata_group_provider'),
+                ])
+                ->addTag('sulu_bulk_actions.handler'));
+        }
 
-            $container->setDefinition($handlerClass, (new Definition($handlerClass))
+        if ($this->isInstalled('snippets')) {
+            $container->setDefinition(SnippetBulkActionHandler::class, (new Definition(SnippetBulkActionHandler::class))
                 ->setArguments([new Reference(MessageBusInterface::class)])
                 ->addTag('sulu_bulk_actions.handler'));
         }

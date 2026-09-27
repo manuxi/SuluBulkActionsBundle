@@ -19,6 +19,7 @@
 
         <service id="Manuxi\SuluBulkActionsBundle\Admin\BulkActionsAdmin">
             <argument type="service" id="sulu_security.security_checker"/>
+            <argument type="service" id="sulu_bulk_actions.handler_registry"/>
             <argument>%sulu_bulk_actions.resources%</argument>
             <argument>%sulu_bulk_actions.delete_enabled%</argument>
 

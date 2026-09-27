@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Manuxi\SuluBulkActionsBundle\Admin;
 
+use Manuxi\SuluBulkActionsBundle\Handler\BulkActionHandlerRegistry;
 use Sulu\Bundle\AdminBundle\Admin\Admin;
 use Sulu\Bundle\AdminBundle\Admin\View\ListViewBuilderInterface;
 use Sulu\Bundle\AdminBundle\Admin\View\ToolbarAction;
@@ -14,9 +15,10 @@ use Sulu\Component\Security\Authorization\SecurityCheckerInterface;
 /**
  * Adds the bulk actions dropdown to lists that were built by other admins (articles, snippets, ...).
  *
- * The bulk context has its own permissions, so the right to publish or delete many entries at once is separate from
- * the right to do it one by one: "live" allows publish and unpublish, "delete" allows delete (and delete is
- * additionally switched off by default, see the configuration).
+ * Two levels of permissions: the bulk context decides whether a user may use bulk actions at all ("live" allows
+ * publish and unpublish, "delete" allows delete, and delete is additionally switched off by default, see the
+ * configuration). Then an action is only offered in a list if the user also has the same permission in the security
+ * context of that list (for articles the one of the group); the server checks every entry again.
  */
 class BulkActionsAdmin extends Admin
 {
@@ -27,6 +29,7 @@ class BulkActionsAdmin extends Admin
      */
     public function __construct(
         private readonly SecurityCheckerInterface $securityChecker,
+        private readonly BulkActionHandlerRegistry $handlerRegistry,
         private readonly array $resources,
         private readonly bool $deleteEnabled,
     ) {
@@ -79,31 +82,42 @@ class BulkActionsAdmin extends Admin
     {
         $actions = [];
 
-        foreach ($this->resources as $resource) {
+        foreach ($this->resources as $resourceKey => $resource) {
             foreach ($resource['view_prefixes'] as $prefix) {
                 if (!str_starts_with($viewName, $prefix)) {
                     continue;
                 }
 
                 foreach ($resource['actions'] as $action) {
-                    $actions[$action] = true;
+                    if ($this->isAllowed((string) $resourceKey, $action, $viewName)) {
+                        $actions[$action] = true;
+                    }
                 }
             }
         }
 
-        return array_values(array_filter(
-            array_keys($actions),
-            fn (string $action): bool => $this->isAllowed($action),
-        ));
+        return array_keys($actions);
     }
 
-    private function isAllowed(string $action): bool
+    private function isAllowed(string $resourceKey, string $action, string $viewName): bool
     {
-        if ('delete' === $action) {
-            return $this->deleteEnabled
-                && $this->securityChecker->hasPermission(self::SECURITY_CONTEXT, PermissionTypes::DELETE);
+        $permission = 'delete' === $action ? PermissionTypes::DELETE : PermissionTypes::LIVE;
+
+        if ('delete' === $action && !$this->deleteEnabled) {
+            return false;
         }
 
-        return $this->securityChecker->hasPermission(self::SECURITY_CONTEXT, PermissionTypes::LIVE);
+        $handler = $this->handlerRegistry->find($resourceKey, $action);
+        if (null === $handler) {
+            return false;
+        }
+
+        if (!$this->securityChecker->hasPermission(self::SECURITY_CONTEXT, $permission)) {
+            return false;
+        }
+
+        $context = $handler->getListSecurityContext($viewName);
+
+        return null === $context || $this->securityChecker->hasPermission($context, $permission);
     }
 }
