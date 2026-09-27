@@ -1,81 +1,68 @@
-﻿# SuluBulkActionBundle
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/manuxi/SuluBulkActionsBundle/LICENSE)
-![GitHub Tag](https://img.shields.io/github/v/tag/manuxi/SuluBulkActionsBundle)
-![Supports Sulu 2.6 or later](https://img.shields.io/badge/%20Sulu->=2.6-0088cc?color=00b2df)
+# SuluBulkActionsBundle (Sulu 3.x)
 
-I made this bundle to have the possibility to manage bulk actions in lists of my projects.
+Bulk actions for lists in the Sulu admin: mark rows, then publish, unpublish or (optionally) delete them in one go.
+Articles (all groups) and snippets work out of the box; other bundles bring their own handler.
 
-Please feel comfortable submitting feature requests.
-This bundle is still in development. Use at own risk 🤞🏻
+This is the `3.x` branch for Sulu 3.0. The `main` branch is the version for Sulu 2.6.
 
-## 👩🏻‍🏭 Installation
-Some tasks are awaiting you!
+## Installation
 
-Install the package with:
 ```console
-composer require manuxi/sulu-bulk-actions-bundle
+composer require manuxi/sulu-bulk-actions-bundle:3.x-dev
 ```
 
-Rebuild admin sources:
-```bash
-    cd assets/admin
-    npm install
-    npm run build
+1. Register the bundle in `config/bundles.php`:
+   `Manuxi\SuluBulkActionsBundle\SuluBulkActionsBundle::class => ['all' => true]`
+2. Import the routes in `config/routes_admin.yaml`:
+   ```yaml
+   SuluBulkActionsBundle:
+       resource: '@SuluBulkActionsBundle/Resources/config/routes_admin.yaml'
+   ```
+3. Add the JS to `assets/admin/package.json` (`"sulu-bulk-actions-bundle": "file:../../vendor/manuxi/sulu-bulk-actions-bundle/src/Resources/js"`)
+   and `assets/admin/app.js` (`import 'sulu-bulk-actions-bundle';`), then `npm install --force && npm run build`.
+4. Give the "Bulk actions" context to a role (see Permissions).
+
+## Permissions
+
+The bundle has its own security context `sulu.bulk_actions.actions` ("Bulk actions" in the role form):
+
+| Permission | Allows |
+|---|---|
+| Live | bulk publish and unpublish |
+| Delete | bulk delete (only if `delete_enabled` is on, see below) |
+
+Nobody has it by default. Bulk actions are separate from the rights on the single entries, so it is meant for admins.
+The dropdown only appears for users who have the permission, and the endpoint checks it again.
+
+## Configuration
+
+```yaml
+sulu_bulk_actions:
+    delete_enabled: false        # bulk delete is off; turning it on also needs the "Delete" permission
+    resources:                   # optional; articles and snippets are added by default
+        articles:
+            view_prefixes: ['sulu_article.article.list_']
+            actions: [publish, unpublish]
 ```
 
-1. Then add the config for resourcekey and actions to Admin in project/bundle
+## Handlers for other resources
+
+Implement `Manuxi\SuluBulkActionsBundle\Handler\BulkActionHandlerInterface` (it is tagged automatically) and add the
+resource to `sulu_bulk_actions.resources` with the names of its list views:
+
 ```php
-    public function getConfigKey(): ?string
-    {
-        return 'sulu_mybundle';
-    }
+public function supports(string $resourceKey, string $action): bool
+{
+    return 'testimonials' === $resourceKey && \in_array($action, ['publish', 'unpublish'], true);
+}
 
-    public function getConfig(): ?array
-    {
-        return [
-            'resourceKey' => 'mybundle',  //with this, the route is build: /admin/api/{resourceKey}/bulk-{action}
-            'bulkActions' => [
-                'publish' => ['icon' => 'su-eye'],
-                'unpublish' => ['icon' => 'su-eye-slash'],
-            ],
-        ];
-    }
-```
-2. The action-buttons must be added to the Admin-Class in project/bundle
-```php
-    $listToolbarActions[] = new ToolbarAction('app.bulk.actions_dropdown', [
-        'label' => 'sulu_bulk_actions.actions',
-        'icon' => 'su-pen',
-        'actions' => [
-            'app.bulk.publish',
-            'app.bulk.unpublish',
-        ],
-    ]);
-```
-3. Add a handler in project/bundle
-```php
-    class MybundleBulkActionHandler
-    {
-        public function __construct(
-            private readonly MybundleModel $model,
-        ) {
-        }
-    
-        public function supports(string $resourceKey, string $action): bool
-        {
-            return 'testimonials' === $resourceKey
-                && in_array($action, ['publish', 'unpublish']);
-        }
-    
-        public function handle(string $action, array $ids, Request $request): array
-        {
-            return match ($action) {
-                'publish' => $this->tmodel->publishBulk($ids, $request),
-                'unpublish' => $this->model->unpublishBulk($ids, $request),
-                default => [],
-            };
-        }
-    }
+public function handle(string $action, array $ids, string $locale): array
+{
+    // ... return ['done' => [...ids], 'failed' => [id => message]]
+}
 ```
 
-Thats maily all.
+## Endpoint
+
+`POST /admin/api/bulk-actions/{resourceKey}/{action}?locale=de` with `{"ids": ["..."]}`. The prefix is deliberately not
+`/admin/api/{resourceKey}/...`, which would collide with the routes of the resources themselves.

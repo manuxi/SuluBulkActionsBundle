@@ -5,8 +5,25 @@
                                https://symfony.com/schema/dic/services/services-1.0.xsd">
 
     <services>
-        <!--Handler-->
-        <service id="sulu_bulk_actions.handler_registry" class="Manuxi\SuluBulkActionsBundle\Handler\BulkActionHandlerRegistry" public="true">
+        <service id="sulu_bulk_actions.handler_registry"
+                 class="Manuxi\SuluBulkActionsBundle\Handler\BulkActionHandlerRegistry"/>
+
+        <service id="Manuxi\SuluBulkActionsBundle\Controller\Admin\BulkActionController" public="true">
+            <argument type="service" id="sulu_bulk_actions.handler_registry"/>
+            <argument type="service" id="sulu_security.security_checker"/>
+            <argument>%sulu_bulk_actions.delete_enabled%</argument>
+
+            <tag name="controller.service_arguments"/>
+            <tag name="sulu.context" context="admin"/>
+        </service>
+
+        <service id="Manuxi\SuluBulkActionsBundle\Admin\BulkActionsAdmin">
+            <argument type="service" id="sulu_security.security_checker"/>
+            <argument>%sulu_bulk_actions.resources%</argument>
+            <argument>%sulu_bulk_actions.delete_enabled%</argument>
+
+            <tag name="sulu.admin"/>
+            <tag name="sulu.context" context="admin"/>
         </service>
     </services>
 </container>

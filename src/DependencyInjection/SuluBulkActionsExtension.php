@@ -1,23 +1,72 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Manuxi\SuluBulkActionsBundle\DependencyInjection;
 
+use Manuxi\SuluBulkActionsBundle\Handler\ArticleBulkActionHandler;
+use Manuxi\SuluBulkActionsBundle\Handler\BulkActionHandlerInterface;
+use Manuxi\SuluBulkActionsBundle\Handler\SnippetBulkActionHandler;
+use Sulu\Article\Application\Message\ApplyWorkflowTransitionArticleMessage;
+use Sulu\Snippet\Application\Message\ApplyWorkflowTransitionSnippetMessage;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
+use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\Extension\PrependExtensionInterface;
 use Symfony\Component\DependencyInjection\Loader\XmlFileLoader;
+use Symfony\Component\DependencyInjection\Reference;
 use Symfony\Component\HttpKernel\DependencyInjection\Extension;
+use Symfony\Component\Messenger\MessageBusInterface;
 
 class SuluBulkActionsExtension extends Extension implements PrependExtensionInterface
 {
+    /**
+     * Lists that get the dropdown without any project configuration.
+     */
+    private const DEFAULT_RESOURCES = [
+        'articles' => [
+            'view_prefixes' => ['sulu_article.article.list_'],
+            'actions' => ['publish', 'unpublish'],
+        ],
+        'snippets' => [
+            'view_prefixes' => ['sulu_snippet.snippet.list'],
+            'actions' => ['publish', 'unpublish'],
+        ],
+    ];
+
     public function load(array $configs, ContainerBuilder $container): void
     {
-        $loader = new XmlFileLoader(
-            $container,
-            new FileLocator(__DIR__.'/../Resources/config')
-        );
+        $config = $this->processConfiguration(new Configuration(), $configs);
+
+        $loader = new XmlFileLoader($container, new FileLocator(__DIR__.'/../Resources/config'));
         $loader->load('services.xml');
-        $loader->load('controller.xml');
+
+        $resources = $config['resources'];
+        foreach (self::DEFAULT_RESOURCES as $resourceKey => $defaults) {
+            if (!$this->isInstalled($resourceKey)) {
+                continue;
+            }
+            $resources[$resourceKey] ??= $defaults;
+        }
+
+        $container->setParameter('sulu_bulk_actions.delete_enabled', $config['delete_enabled']);
+        $container->setParameter('sulu_bulk_actions.resources', $resources);
+
+        $container->registerForAutoconfiguration(BulkActionHandlerInterface::class)
+            ->addTag('sulu_bulk_actions.handler');
+
+        foreach ([
+            'articles' => ArticleBulkActionHandler::class,
+            'snippets' => SnippetBulkActionHandler::class,
+        ] as $resourceKey => $handlerClass) {
+            if (!$this->isInstalled($resourceKey)) {
+                continue;
+            }
+
+            $container->setDefinition($handlerClass, (new Definition($handlerClass))
+                ->setArguments([new Reference(MessageBusInterface::class)])
+                ->addTag('sulu_bulk_actions.handler'));
+        }
     }
 
     public function prepend(ContainerBuilder $container): void
@@ -31,5 +80,14 @@ class SuluBulkActionsExtension extends Extension implements PrependExtensionInte
                 ],
             ]);
         }
+    }
+
+    private function isInstalled(string $resourceKey): bool
+    {
+        return match ($resourceKey) {
+            'articles' => class_exists(ApplyWorkflowTransitionArticleMessage::class),
+            'snippets' => class_exists(ApplyWorkflowTransitionSnippetMessage::class),
+            default => false,
+        };
     }
 }

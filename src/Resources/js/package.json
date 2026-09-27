@@ -1,16 +1,12 @@
 {
     "name": "sulu-bulk-actions-bundle",
+    "version": "1.0.0",
     "license": "MIT",
-    "scripts": {
-        "lint": "eslint src",
-        "lint:fix": "eslint src --fix"
-    },
+    "main": "index.js",
     "peerDependencies": {
-        "classnames": "^2.2.5",
         "mobx": "^4.0.0",
         "mobx-react": "^5.0.0",
         "react": "^17.0.0",
-        "sulu-admin-bundle": "*",
-        "sulu-page-bundle": "*"
+        "sulu-admin-bundle": "*"
     }
 }
