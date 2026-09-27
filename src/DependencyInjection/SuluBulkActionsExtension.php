@@ -6,6 +6,7 @@ namespace Manuxi\SuluBulkActionsBundle\DependencyInjection;
 
 use Manuxi\SuluBulkActionsBundle\Handler\ArticleBulkActionHandler;
 use Manuxi\SuluBulkActionsBundle\Handler\BulkActionHandlerInterface;
+use Manuxi\SuluBulkActionsBundle\Handler\ContentEntityBulkActionHandler;
 use Manuxi\SuluBulkActionsBundle\Handler\SnippetBulkActionHandler;
 use Sulu\Article\Application\Message\ApplyWorkflowTransitionArticleMessage;
 use Sulu\Snippet\Application\Message\ApplyWorkflowTransitionSnippetMessage;
@@ -32,6 +33,23 @@ class SuluBulkActionsExtension extends Extension implements PrependExtensionInte
             'view_prefixes' => ['sulu_snippet.snippet.list'],
             'actions' => ['publish', 'unpublish'],
         ],
+        'testimonials' => [
+            'view_prefixes' => ['sulu_testimonials.testimonials.list'],
+            'actions' => ['publish', 'unpublish'],
+        ],
+        'events' => [
+            'view_prefixes' => ['sulu_event.event.list'],
+            'actions' => ['publish', 'unpublish'],
+        ],
+    ];
+
+    /**
+     * Bundles of the same family that work with the repository and the content workflow: publish and unpublish are
+     * handled generically. Registered only if the bundle is installed.
+     */
+    private const OWN_BUNDLE_ENTITIES = [
+        'testimonials' => ['Manuxi\SuluTestimonialsBundle\Entity\Testimonial', 'sulu.testimonials.testimonials'],
+        'events' => ['Manuxi\SuluEventBundle\Entity\Event', 'sulu.events.events'],
     ];
 
     public function load(array $configs, ContainerBuilder $container): void
@@ -70,6 +88,22 @@ class SuluBulkActionsExtension extends Extension implements PrependExtensionInte
                 ->setArguments([new Reference(MessageBusInterface::class)])
                 ->addTag('sulu_bulk_actions.handler'));
         }
+
+        foreach (self::OWN_BUNDLE_ENTITIES as $resourceKey => [$entityClass, $securityContext]) {
+            if (!$this->isInstalled($resourceKey)) {
+                continue;
+            }
+
+            $container->setDefinition('sulu_bulk_actions.handler.'.$resourceKey, (new Definition(ContentEntityBulkActionHandler::class))
+                ->setArguments([
+                    $resourceKey,
+                    $entityClass,
+                    $securityContext,
+                    new Reference('doctrine.orm.entity_manager'),
+                    new Reference('sulu_content.content_workflow'),
+                ])
+                ->addTag('sulu_bulk_actions.handler'));
+        }
     }
 
     public function prepend(ContainerBuilder $container): void
@@ -90,7 +124,7 @@ class SuluBulkActionsExtension extends Extension implements PrependExtensionInte
         return match ($resourceKey) {
             'articles' => class_exists(ApplyWorkflowTransitionArticleMessage::class),
             'snippets' => class_exists(ApplyWorkflowTransitionSnippetMessage::class),
-            default => false,
+            default => isset(self::OWN_BUNDLE_ENTITIES[$resourceKey]) && class_exists(self::OWN_BUNDLE_ENTITIES[$resourceKey][0]),
         };
     }
 }
