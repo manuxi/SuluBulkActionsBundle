@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace Manuxi\SuluBulkActionsBundle\Handler;
 
+use Doctrine\ORM\AbstractQuery;
+use Doctrine\ORM\EntityManagerInterface;
 use Sulu\Article\Application\Message\ApplyWorkflowTransitionArticleMessage;
 use Sulu\Article\Application\Message\RemoveArticleMessage;
+use Sulu\Article\Domain\Model\ArticleDimensionContentInterface;
 use Sulu\Article\Domain\Model\ArticleInterface;
-use Sulu\Article\Domain\Repository\ArticleRepositoryInterface;
 use Sulu\Article\Infrastructure\Sulu\Admin\ArticleAdmin;
 use Sulu\Bundle\AdminBundle\Metadata\GroupProviderInterface;
 use Sulu\Content\Domain\Model\DimensionContentInterface;
@@ -20,7 +22,7 @@ class ArticleBulkActionHandler extends ContentWorkflowBulkActionHandler
 {
     public function __construct(
         MessageBusInterface $messageBus,
-        private readonly ArticleRepositoryInterface $articleRepository,
+        private readonly EntityManagerInterface $entityManager,
         private readonly GroupProviderInterface $groupProvider,
     ) {
         parent::__construct($messageBus);
@@ -33,29 +35,26 @@ class ArticleBulkActionHandler extends ContentWorkflowBulkActionHandler
 
     public function getSecurityContext(string $id, string $locale): ?string
     {
-        $article = $this->articleRepository->findOneBy(
-            ['uuid' => $id],
-            [
-                ArticleRepositoryInterface::SELECT_ARTICLE_CONTENT => [
-                    'dimensionAttributes' => [
-                        'locale' => $locale,
-                        'stage' => DimensionContentInterface::STAGE_DRAFT,
-                    ],
-                ],
-            ],
-        );
-
-        $templateKey = null;
-        foreach ($article?->getDimensionContents() ?? [] as $dimensionContent) {
-            $templateKey = $dimensionContent->getTemplateKey();
-            if (null !== $templateKey) {
-                break;
-            }
-        }
+        // A scalar query on purpose: loading the article as an object would fill the identity map with the draft
+        // dimension only, and the workflow would then not find the live one.
+        $templateKey = $this->entityManager->createQueryBuilder()
+            ->select('dimensionContent.templateKey')
+            ->from(ArticleDimensionContentInterface::class, 'dimensionContent')
+            ->innerJoin('dimensionContent.article', 'article')
+            ->where('article.uuid = :uuid')
+            ->andWhere('dimensionContent.stage = :stage')
+            ->andWhere('dimensionContent.locale = :locale')
+            ->andWhere('dimensionContent.version = 0')
+            ->setParameter('uuid', $id)
+            ->setParameter('stage', DimensionContentInterface::STAGE_DRAFT)
+            ->setParameter('locale', $locale)
+            ->setMaxResults(1)
+            ->getQuery()
+            ->getOneOrNullResult(AbstractQuery::HYDRATE_SINGLE_SCALAR);
 
         $groups = $this->groupProvider->getGroups(ArticleInterface::TEMPLATE_TYPE);
         foreach ($groups as $group) {
-            if (\in_array($templateKey, $group->templates, true)) {
+            if (null !== $templateKey && \in_array($templateKey, $group->templates, true)) {
                 return $this->contextOfGroup($groups, $group->identifier);
             }
         }

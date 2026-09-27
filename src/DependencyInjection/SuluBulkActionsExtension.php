@@ -59,7 +59,7 @@ class SuluBulkActionsExtension extends Extension implements PrependExtensionInte
             $container->setDefinition(ArticleBulkActionHandler::class, (new Definition(ArticleBulkActionHandler::class))
                 ->setArguments([
                     new Reference(MessageBusInterface::class),
-                    new Reference('sulu_article.article_repository'),
+                    new Reference('doctrine.orm.entity_manager'),
                     new Reference('sulu_admin.metadata_group_provider'),
                 ])
                 ->addTag('sulu_bulk_actions.handler'));
