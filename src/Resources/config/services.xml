@@ -12,6 +12,7 @@
             <argument type="service" id="sulu_bulk_actions.handler_registry"/>
             <argument type="service" id="sulu_security.security_checker"/>
             <argument>%sulu_bulk_actions.delete_enabled%</argument>
+            <argument type="service" id="sulu.core.localization_manager" on-invalid="null"/>
 
             <tag name="controller.service_arguments"/>
             <tag name="sulu.context" context="admin"/>

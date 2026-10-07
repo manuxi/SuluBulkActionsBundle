@@ -16,13 +16,26 @@ use Sulu\Component\Security\Authorization\SecurityCheckerInterface;
  * Adds the bulk actions dropdown to lists that were built by other admins (articles, snippets, ...).
  *
  * Two levels of permissions: the bulk context decides whether a user may use bulk actions at all ("live" allows
- * publish and unpublish, "delete" allows delete, and delete is additionally switched off by default, see the
- * configuration). Then an action is only offered in a list if the user also has the same permission in the security
- * context of that list (for articles the one of the group); the server checks every entry again.
+ * publish and unpublish, "edit" allows copying a locale, "delete" allows delete, and delete is additionally switched
+ * off by default, see the configuration). Then an action is only offered in a list if the user also has the same
+ * permission in the security context of that list (for articles the one of the group); the server checks every entry
+ * again.
  */
 class BulkActionsAdmin extends Admin
 {
     public const SECURITY_CONTEXT = 'sulu.bulk_actions.actions';
+
+    /**
+     * The permission an action needs, in the bulk context and in the context of every entry.
+     */
+    public static function getPermission(string $action): string
+    {
+        return match ($action) {
+            'delete' => PermissionTypes::DELETE,
+            'copy_locale' => PermissionTypes::EDIT,
+            default => PermissionTypes::LIVE,
+        };
+    }
 
     /**
      * @param array<string, array{view_prefixes: list<string>, actions: list<string>}> $resources
@@ -67,6 +80,7 @@ class BulkActionsAdmin extends Admin
             self::SULU_ADMIN_SECURITY_SYSTEM => [
                 'BulkActions' => [
                     self::SECURITY_CONTEXT => [
+                        PermissionTypes::EDIT,
                         PermissionTypes::LIVE,
                         PermissionTypes::DELETE,
                     ],
@@ -101,7 +115,7 @@ class BulkActionsAdmin extends Admin
 
     private function isAllowed(string $resourceKey, string $action, string $viewName): bool
     {
-        $permission = 'delete' === $action ? PermissionTypes::DELETE : PermissionTypes::LIVE;
+        $permission = self::getPermission($action);
 
         if ('delete' === $action && !$this->deleteEnabled) {
             return false;

@@ -13,9 +13,11 @@ use Sulu\Content\Application\ContentWorkflow\ContentWorkflowInterface;
  *
  * Delete is not offered: those bundles do more than removing the row (trash, dependent data, domain events).
  */
-class ContentEntityBulkActionHandler implements BulkActionHandlerInterface
+class ContentEntityBulkActionHandler implements BulkActionHandlerInterface, EntryInfoProviderInterface
 {
     private const TRANSITIONS = ['publish' => 'publish', 'unpublish' => 'unpublish'];
+
+    private readonly DimensionContentLookup $lookup;
 
     /**
      * @param class-string $entityClass
@@ -27,6 +29,7 @@ class ContentEntityBulkActionHandler implements BulkActionHandlerInterface
         private readonly EntityManagerInterface $entityManager,
         private readonly ContentWorkflowInterface $contentWorkflow,
     ) {
+        $this->lookup = new DimensionContentLookup($entityManager, $entityClass);
     }
 
     public function supports(string $resourceKey, string $action): bool
@@ -42,6 +45,16 @@ class ContentEntityBulkActionHandler implements BulkActionHandlerInterface
     public function getListSecurityContext(string $viewName): ?string
     {
         return $this->securityContext;
+    }
+
+    public function findMissingInLocale(array $ids, string $locale): array
+    {
+        return $this->lookup->findMissingInLocale($ids, $locale);
+    }
+
+    public function getTitles(array $ids, string $locale): array
+    {
+        return $this->lookup->getTitles($ids, $locale);
     }
 
     public function handle(string $action, array $ids, string $locale): array

@@ -7,8 +7,10 @@ namespace Manuxi\SuluBulkActionsBundle\DependencyInjection;
 use Manuxi\SuluBulkActionsBundle\Handler\ArticleBulkActionHandler;
 use Manuxi\SuluBulkActionsBundle\Handler\BulkActionHandlerInterface;
 use Manuxi\SuluBulkActionsBundle\Handler\ContentEntityBulkActionHandler;
+use Manuxi\SuluBulkActionsBundle\Handler\PageBulkActionHandler;
 use Manuxi\SuluBulkActionsBundle\Handler\SnippetBulkActionHandler;
 use Sulu\Article\Application\Message\ApplyWorkflowTransitionArticleMessage;
+use Sulu\Page\Application\Message\CopyLocalePageMessage;
 use Sulu\Snippet\Application\Message\ApplyWorkflowTransitionSnippetMessage;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
@@ -27,11 +29,11 @@ class SuluBulkActionsExtension extends Extension implements PrependExtensionInte
     private const DEFAULT_RESOURCES = [
         'articles' => [
             'view_prefixes' => ['sulu_article.article.list_'],
-            'actions' => ['publish', 'unpublish'],
+            'actions' => ['publish', 'unpublish', 'copy_locale'],
         ],
         'snippets' => [
             'view_prefixes' => ['sulu_snippet.snippet.list'],
-            'actions' => ['publish', 'unpublish'],
+            'actions' => ['publish', 'unpublish', 'copy_locale'],
         ],
         'testimonials' => [
             'view_prefixes' => ['sulu_testimonials.testimonials.list'],
@@ -85,7 +87,20 @@ class SuluBulkActionsExtension extends Extension implements PrependExtensionInte
 
         if ($this->isInstalled('snippets')) {
             $container->setDefinition(SnippetBulkActionHandler::class, (new Definition(SnippetBulkActionHandler::class))
-                ->setArguments([new Reference(MessageBusInterface::class)])
+                ->setArguments([
+                    new Reference(MessageBusInterface::class),
+                    new Reference('doctrine.orm.entity_manager'),
+                ])
+                ->addTag('sulu_bulk_actions.handler'));
+        }
+
+        // pages: only copy_locale and without a default list (the page tree cannot select), see PageBulkActionHandler
+        if ($this->isInstalled('pages')) {
+            $container->setDefinition(PageBulkActionHandler::class, (new Definition(PageBulkActionHandler::class))
+                ->setArguments([
+                    new Reference(MessageBusInterface::class),
+                    new Reference('doctrine.orm.entity_manager'),
+                ])
                 ->addTag('sulu_bulk_actions.handler'));
         }
 
@@ -124,6 +139,7 @@ class SuluBulkActionsExtension extends Extension implements PrependExtensionInte
         return match ($resourceKey) {
             'articles' => class_exists(ApplyWorkflowTransitionArticleMessage::class),
             'snippets' => class_exists(ApplyWorkflowTransitionSnippetMessage::class),
+            'pages' => class_exists(CopyLocalePageMessage::class),
             default => isset(self::OWN_BUNDLE_ENTITIES[$resourceKey]) && class_exists(self::OWN_BUNDLE_ENTITIES[$resourceKey][0]),
         };
     }

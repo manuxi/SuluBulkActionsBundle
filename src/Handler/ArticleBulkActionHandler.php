@@ -7,6 +7,7 @@ namespace Manuxi\SuluBulkActionsBundle\Handler;
 use Doctrine\ORM\AbstractQuery;
 use Doctrine\ORM\EntityManagerInterface;
 use Sulu\Article\Application\Message\ApplyWorkflowTransitionArticleMessage;
+use Sulu\Article\Application\Message\CopyLocaleArticleMessage;
 use Sulu\Article\Application\Message\RemoveArticleMessage;
 use Sulu\Article\Domain\Model\ArticleDimensionContentInterface;
 use Sulu\Article\Domain\Model\ArticleInterface;
@@ -18,14 +19,17 @@ use Symfony\Component\Messenger\MessageBusInterface;
 /**
  * Articles have one security context per article group (Blog, FAQ, ...), the same ones the role form shows.
  */
-class ArticleBulkActionHandler extends ContentWorkflowBulkActionHandler
+class ArticleBulkActionHandler extends ContentWorkflowBulkActionHandler implements LocaleCopyHandlerInterface
 {
+    private readonly DimensionContentLookup $lookup;
+
     public function __construct(
         MessageBusInterface $messageBus,
         private readonly EntityManagerInterface $entityManager,
         private readonly GroupProviderInterface $groupProvider,
     ) {
         parent::__construct($messageBus);
+        $this->lookup = new DimensionContentLookup($entityManager, ArticleInterface::class);
     }
 
     protected function getResourceKey(): string
@@ -90,6 +94,16 @@ class ArticleBulkActionHandler extends ContentWorkflowBulkActionHandler
         return ArticleAdmin::getArticleSecurityContext($identifier);
     }
 
+    public function findMissingInLocale(array $ids, string $locale): array
+    {
+        return $this->lookup->findMissingInLocale($ids, $locale);
+    }
+
+    public function getTitles(array $ids, string $locale): array
+    {
+        return $this->lookup->getTitles($ids, $locale);
+    }
+
     protected function createTransitionMessage(array $identifier, string $locale, string $transition): object
     {
         return new ApplyWorkflowTransitionArticleMessage($identifier, $locale, $transition);
@@ -98,5 +112,10 @@ class ArticleBulkActionHandler extends ContentWorkflowBulkActionHandler
     protected function createRemoveMessage(array $identifier, string $locale): object
     {
         return new RemoveArticleMessage($identifier, $locale);
+    }
+
+    protected function createCopyLocaleMessage(array $identifier, string $sourceLocale, string $targetLocale): object
+    {
+        return new CopyLocaleArticleMessage($identifier, $sourceLocale, $targetLocale);
     }
 }

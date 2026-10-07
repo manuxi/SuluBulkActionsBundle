@@ -1,7 +1,15 @@
 # SuluBulkActionsBundle (Sulu 3.x)
+![php workflow](https://github.com/manuxi/SuluBulkActionsBundle/actions/workflows/php.yml/badge.svg)
+![symfony workflow](https://github.com/manuxi/SuluBulkActionsBundle/actions/workflows/symfony.yml/badge.svg)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/manuxi/SuluBulkActionsBundle/blob/main/LICENSE)
+![GitHub Tag](https://img.shields.io/github/v/tag/manuxi/SuluBulkActionsBundle)
+![Supports Sulu 3.0 or later](https://img.shields.io/badge/%20Sulu->=3.0-0088cc?color=00b2df)
 
-Bulk actions for lists in the Sulu admin: mark rows, then publish, unpublish or (optionally) delete them in one go.
-Articles (all groups), snippets, [testimonials](https://github.com/manuxi/SuluTestimonialsBundle) and [events](https://github.com/manuxi/SuluEventBundle) work out of the box (publish and unpublish); other bundles bring their own handler.
+[🇩🇪 German Version](README.de.md)
+
+Bulk actions for lists in the Sulu admin: mark rows, then publish, unpublish, copy a locale or (optionally) delete them
+in one go.
+Articles (all groups), snippets, [testimonials](https://github.com/manuxi/SuluTestimonialsBundle) and [events](https://github.com/manuxi/SuluEventBundle) work out of the box (publish and unpublish; articles and snippets also copy locale); other bundles bring their own handler.
 
 This is the `3.x` branch for Sulu 3.0. The `main` branch is the version for Sulu 2.6.
 
@@ -27,14 +35,29 @@ composer require manuxi/sulu-bulk-actions-bundle:3.x-dev
 Two levels, so nobody can do in bulk what they may not do one by one:
 
 1. **Switch:** the security context `sulu.bulk_actions.actions` ("BulkActions" in the role form) decides whether a role
-   may use bulk actions at all. "Live" allows publish and unpublish, "Delete" allows delete (only if `delete_enabled`
-   is on, see below). Nobody has it by default; the project fixture gives it to Admin.
+   may use bulk actions at all. "Live" allows publish and unpublish, "Edit" allows copy locale, "Delete" allows delete
+   (only if `delete_enabled` is on, see below). Nobody has it by default; give it to a role in the role form.
 2. **Entries:** every entry is checked against the security context of the entry itself, with the same permission
-   ("Live" or "Delete"). For articles that is the context of the article group (`sulu.article.articles_blog`, ...),
-   for snippets `sulu.snippet.snippets`. Entries without permission are skipped and reported. The dropdown only shows
-   the actions the user may use in that list (for example only in the Blog tab if they have the right for Blog).
+   ("Live", "Edit" or "Delete"). For articles that is the context of the article group (`sulu.article.articles_blog`, ...),
+   for snippets `sulu.snippet.snippets`. Copy locale checks "Edit" in the target language. Entries without permission
+   are skipped and reported. The dropdown only shows the actions the user may use in that list (for example only in the
+   Blog tab if they have the right for Blog).
 
 New article groups need nothing: their contexts already exist in the role form.
+
+## Result
+
+If not all selected entries could be processed, a dialog explains why, in the language of the admin: entries without a
+version in the chosen language (detected up front and skipped), entries without permission, and other errors with the
+title of the entry. Details: [Result of a bulk action](docs/results.en.md)
+
+## Copy locale
+
+"Copy locale" copies the content of one language into another for all selected articles or snippets, like "Copy locale"
+in the form. A dialog asks for the source and the target language. The result is always a draft; nothing is published.
+Entries without the source language and entries that already have the target language are skipped and listed by title;
+a switch "Overwrite existing versions" (default: off) replaces existing drafts. Pages have a handler, but no list in
+the admin yet (the page tree cannot select). Details: [Copy locale](docs/copy-locale.en.md)
 
 ## Configuration
 
@@ -44,7 +67,7 @@ sulu_bulk_actions:
     resources:                   # optional; articles and snippets are added by default
         articles:
             view_prefixes: ['sulu_article.article.list_']
-            actions: [publish, unpublish]
+            actions: [publish, unpublish, copy_locale]
 ```
 
 ## Handlers for other resources
@@ -64,7 +87,20 @@ public function handle(string $action, array $ids, string $locale): array
 }
 ```
 
+Also implement `EntryInfoProviderInterface` so that entries without the language are skipped with a clear message and
+errors show the title instead of the ID (see [Result of a bulk action](docs/results.en.md#own-handlers)).
+`LocaleCopyHandlerInterface` adds the action `copy_locale` (see [Copy locale](docs/copy-locale.en.md#own-handlers)).
+
 ## Endpoint
 
 `POST /admin/api/bulk-actions/{resourceKey}/{action}?locale=de` with `{"ids": ["..."]}`. The prefix is deliberately not
-`/admin/api/{resourceKey}/...`, which would collide with the routes of the resources themselves.
+`/admin/api/{resourceKey}/...`, which would collide with the routes of the resources themselves. The response counts
+`done`, `missing`, `denied` and `failed` entries (see [Result of a bulk action](docs/results.en.md#response-of-the-endpoint)).
+`copy_locale` also takes `sourceLocale`, `targetLocale` and `overwrite` (see [Copy locale](docs/copy-locale.en.md#endpoint)).
+
+## Tests
+
+```console
+composer install
+vendor/bin/phpunit
+```

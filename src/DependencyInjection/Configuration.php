@@ -31,7 +31,7 @@ class Configuration implements ConfigurationInterface
                                 ->requiresAtLeastOneElement()
                             ->end()
                             ->arrayNode('actions')
-                                ->info('publish, unpublish and/or delete; a handler for the resource key must exist.')
+                                ->info('publish, unpublish, copy_locale and/or delete; a handler for the resource key must exist.')
                                 ->scalarPrototype()->end()
                                 ->defaultValue(['publish', 'unpublish'])
                             ->end()
