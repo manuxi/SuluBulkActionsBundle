@@ -1,6 +1,5 @@
 # SuluBulkActionsBundle (Sulu 3.x)
-![php workflow](https://github.com/manuxi/SuluBulkActionsBundle/actions/workflows/php.yml/badge.svg)
-![symfony workflow](https://github.com/manuxi/SuluBulkActionsBundle/actions/workflows/symfony.yml/badge.svg)
+![tests workflow](https://github.com/manuxi/SuluBulkActionsBundle/actions/workflows/tests.yml/badge.svg?branch=3.x)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/manuxi/SuluBulkActionsBundle/blob/3.x/LICENSE)
 ![GitHub Tag](https://img.shields.io/github/v/tag/manuxi/SuluBulkActionsBundle)
 ![Supports Sulu 3.0 or later](https://img.shields.io/badge/%20Sulu->=3.0-0088cc?color=00b2df)
