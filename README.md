@@ -10,7 +10,9 @@ Bulk actions for lists in the Sulu admin: mark rows, then publish, unpublish, co
 in one go.
 Articles (all groups), snippets, [testimonials](https://github.com/manuxi/SuluTestimonialsBundle) and [events](https://github.com/manuxi/SuluEventBundle) work out of the box (publish and unpublish; articles and snippets also copy locale); other bundles bring their own handler.
 
-This is the `3.x` branch for Sulu 3.0. The `main` branch is the version for Sulu 2.6.
+![Bulk actions menu in a list](docs/img/bulk-actions-in-list.png)
+
+This is the `3.x` branch for Sulu 3.0. The `2.x` branch is the version for Sulu 2.6.
 
 ## Installation
 

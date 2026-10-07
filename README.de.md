@@ -10,7 +10,9 @@ Sammelaktionen für Listen im Sulu-Admin: Zeilen markieren, dann in einem Rutsch
 zurückziehen, eine Sprache kopieren oder (optional) löschen.
 Artikel (alle Gruppen), Schnipsel, [Testimonials](https://github.com/manuxi/SuluTestimonialsBundle) und [Events](https://github.com/manuxi/SuluEventBundle) funktionieren ohne weiteres (Veröffentlichen und Zurückziehen; Artikel und Schnipsel auch Sprache kopieren); andere Bundles bringen ihren eigenen Handler mit.
 
-Dies ist der Branch `3.x` für Sulu 3.0. Der Branch `main` ist die Version für Sulu 2.6.
+![Menü Massen-Aktionen in einer Liste](docs/img/bulk-actions-in-list.png)
+
+Dies ist der Branch `3.x` für Sulu 3.0. Der Branch `2.x` ist die Version für Sulu 2.6.
 
 ## Installation
 
