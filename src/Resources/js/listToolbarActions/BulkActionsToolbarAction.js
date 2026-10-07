@@ -328,7 +328,7 @@ export default class BulkActionsToolbarAction extends AbstractListToolbarAction 
                 </Dialog>
                 {this.renderCopyLocaleDialog(count)}
                 <Dialog
-                    cancelText={translate('sulu_admin.ok')}
+                    confirmText={translate('sulu_admin.ok')}
                     onCancel={this.handleResultClose}
                     onConfirm={this.handleResultClose}
                     open={!!result}
