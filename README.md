@@ -4,6 +4,9 @@
 ![Supports Sulu 2.6 or later](https://img.shields.io/badge/%20Sulu->=2.6-0088cc?color=00b2df)
 
 I made this bundle to have the possibility to manage bulk actions in lists of my projects.
+This was not possible using Sulu's own methods, so a little trickery was required.
+
+![img.png](docs/img/bulk-actions-in-list.png)
 
 Please feel comfortable submitting feature requests.
 This bundle is still in development. Use at own risk 🤞🏻
@@ -52,12 +55,12 @@ Rebuild admin sources:
         ],
     ]);
 ```
-3. Add a handler in project/bundle
+3. Additionally a handler in project/bundle must be added.
 ```php
-    class MybundleBulkActionHandler
+    class MyBundleBulkActionHandler
     {
         public function __construct(
-            private readonly MybundleModel $model,
+            private readonly MyBundleModel $model,
         ) {
         }
     
@@ -70,7 +73,7 @@ Rebuild admin sources:
         public function handle(string $action, array $ids, Request $request): array
         {
             return match ($action) {
-                'publish' => $this->tmodel->publishBulk($ids, $request),
+                'publish' => $this->model->publishBulk($ids, $request),
                 'unpublish' => $this->model->unpublishBulk($ids, $request),
                 default => [],
             };
@@ -78,5 +81,4 @@ Rebuild admin sources:
     }
 ```
 
-Thats mainly all.
-
+That's mainly all.
