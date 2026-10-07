@@ -1,4 +1,5 @@
 ﻿# SuluBulkActionBundle
+![tests workflow](https://github.com/manuxi/SuluBulkActionsBundle/actions/workflows/tests.yml/badge.svg?branch=2.x)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/manuxi/SuluBulkActionsBundle/LICENSE)
 ![GitHub Tag](https://img.shields.io/github/v/tag/manuxi/SuluBulkActionsBundle)
 ![Supports Sulu 2.6 or later](https://img.shields.io/badge/%20Sulu->=2.6-0088cc?color=00b2df)
