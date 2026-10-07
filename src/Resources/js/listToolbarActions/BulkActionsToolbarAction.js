@@ -89,8 +89,9 @@ export default class BulkActionsToolbarAction extends AbstractListToolbarAction 
             const locales = this.getLocales();
             const current = this.router.attributes.locale;
 
-            this.sourceLocale = locales.includes(current) ? current : locales[0];
-            this.targetLocale = locales.find((locale) => locale !== this.sourceLocale);
+            // the list shows the locale the editor works in: copy into it, from the first other one
+            this.targetLocale = locales.includes(current) ? current : locales[locales.length - 1];
+            this.sourceLocale = locales.find((locale) => locale !== this.targetLocale);
             this.overwrite = false;
         }
 
