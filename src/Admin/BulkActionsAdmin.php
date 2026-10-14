@@ -16,8 +16,8 @@ use Sulu\Component\Security\Authorization\SecurityCheckerInterface;
  * Adds the bulk actions dropdown to lists that were built by other admins (articles, snippets, ...).
  *
  * Two levels of permissions: the bulk context decides whether a user may use bulk actions at all ("live" allows
- * publish and unpublish, "edit" allows copying a locale, "delete" allows delete, and delete is additionally switched
- * off by default, see the configuration). Then an action is only offered in a list if the user also has the same
+ * publish and unpublish, "edit" allows copying a locale, "delete" allows delete, and delete can be switched off
+ * for everybody, see the configuration). Then an action is only offered in a list if the user also has the same
  * permission in the security context of that list (for articles the one of the group); the server checks every entry
  * again.
  */

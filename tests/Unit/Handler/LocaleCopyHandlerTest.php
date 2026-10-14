@@ -6,7 +6,6 @@ namespace Manuxi\SuluBulkActionsBundle\Tests\Unit\Handler;
 
 use Doctrine\ORM\EntityManagerInterface;
 use Manuxi\SuluBulkActionsBundle\Handler\ArticleBulkActionHandler;
-use Manuxi\SuluBulkActionsBundle\Handler\ContentEntityBulkActionHandler;
 use Manuxi\SuluBulkActionsBundle\Handler\ContentWorkflowBulkActionHandler;
 use Manuxi\SuluBulkActionsBundle\Handler\LocaleCopyHandlerInterface;
 use Manuxi\SuluBulkActionsBundle\Handler\PageBulkActionHandler;
@@ -16,7 +15,6 @@ use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Sulu\Article\Application\Message\CopyLocaleArticleMessage;
 use Sulu\Bundle\AdminBundle\Metadata\GroupProviderInterface;
-use Sulu\Content\Application\ContentWorkflow\ContentWorkflowInterface;
 use Sulu\Messenger\Infrastructure\Symfony\Messenger\FlushMiddleware\EnableFlushStamp;
 use Sulu\Page\Application\Message\CopyLocalePageMessage;
 use Sulu\Page\Domain\Model\Page;
@@ -124,20 +122,6 @@ class LocaleCopyHandlerTest extends TestCase
 
         $this->assertInstanceOf(SecuredObjectHandlerInterface::class, $handler);
         $this->assertSame(Page::class, $handler->getSecuredClass());
-    }
-
-    public function testEntitiesOfOtherBundlesDoNotOfferCopyLocale(): void
-    {
-        $handler = new ContentEntityBulkActionHandler(
-            'events',
-            \stdClass::class,
-            'sulu.events.events',
-            $this->createMock(EntityManagerInterface::class),
-            $this->createMock(ContentWorkflowInterface::class),
-        );
-
-        $this->assertNotInstanceOf(LocaleCopyHandlerInterface::class, $handler);
-        $this->assertFalse($handler->supports('events', 'copy_locale'));
     }
 
     private function createRecordingBus(): MessageBusInterface

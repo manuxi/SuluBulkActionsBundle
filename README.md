@@ -6,9 +6,8 @@
 
 [🇩🇪 German Version](README.de.md)
 
-Bulk actions for lists in the Sulu admin: mark rows, then publish, unpublish, copy a locale or (optionally) delete them
-in one go.
-Articles (all groups), snippets, [testimonials](https://github.com/manuxi/SuluTestimonialsBundle) and [events](https://github.com/manuxi/SuluEventBundle) work out of the box (publish and unpublish; articles and snippets also copy locale); other bundles bring their own handler.
+Bulk actions for lists in the Sulu admin: mark rows, then publish, unpublish, copy a locale or delete them in one go.
+Articles (all groups), snippets, [testimonials](https://github.com/manuxi/SuluTestimonialsBundle) and [events](https://github.com/manuxi/SuluEventBundle) work out of the box with all four actions; other bundles bring their own handler.
 
 ![Bulk actions menu in a list](docs/img/bulk-actions-in-list.png)
 
@@ -37,10 +36,10 @@ Two levels, so nobody can do in bulk what they may not do one by one:
 
 1. **Switch:** the security context `sulu.bulk_actions.actions` ("BulkActions" in the role form) decides whether a role
    may use bulk actions at all. "Live" allows publish and unpublish, "Edit" allows copy locale, "Delete" allows delete
-   (only if `delete_enabled` is on, see below). Nobody has it by default; give it to a role in the role form.
+   (unless `delete_enabled` is switched off, see below). Nobody has it by default; give it to a role in the role form.
 2. **Entries:** every entry is checked against the security context of the entry itself, with the same permission
    ("Live", "Edit" or "Delete"). For articles that is the context of the article group (`sulu.article.articles_blog`, ...),
-   for snippets `sulu.snippet.snippets`. Copy locale checks "Edit" in the target language. Entries without permission
+   for snippets `sulu.snippet.snippets`, for testimonials and events their own contexts. Copy locale checks "Edit" in the target language. Entries without permission
    are skipped and reported. The dropdown only shows the actions the user may use in that list (for example only in the
    Blog tab if they have the right for Blog).
 
@@ -54,22 +53,32 @@ title of the entry. Details: [Result of a bulk action](docs/results.en.md)
 
 ## Copy locale
 
-"Copy locale" copies the content of one language into another for all selected articles or snippets, like "Copy locale"
+"Copy locale" copies the content of one language into another for all selected articles, snippets, testimonials or events, like "Copy locale"
 in the form. A dialog asks for the source and the target language. The result is always a draft; nothing is published.
 Entries without the source language and entries that already have the target language are skipped and listed by title;
 a switch "Overwrite existing versions" (default: off) replaces existing drafts. Pages have a handler, but no list in
 the admin yet (the page tree cannot select). Details: [Copy locale](docs/copy-locale.en.md)
 
+## Delete
+
+"Delete" removes all selected entries after a confirmation. It is offered only to roles that have the "Delete"
+permission in the "Bulk actions" context and in the context of the list, and every entry is checked again on the
+server. Articles and snippets are removed with the message of Sulu; testimonials and events are put into the trash and
+leave the search index and the activity log like they do when deleted in the form.
+Details: [Delete](docs/delete.en.md)
+
 ## Configuration
 
 ```yaml
 sulu_bulk_actions:
-    delete_enabled: false        # bulk delete is off; turning it on also needs the "Delete" permission
-    resources:                   # optional; articles and snippets are added by default
+    delete_enabled: true         # false removes bulk delete for everybody, whatever the roles say
+    resources:                   # optional; articles, snippets, testimonials and events are added by default
         articles:
             view_prefixes: ['sulu_article.article.list_']
-            actions: [publish, unpublish, copy_locale]
+            actions: [publish, unpublish, copy_locale, delete]
 ```
+
+A list configured under `resources` replaces the defaults of that resource: add `delete` and `copy_locale` there too.
 
 ## Handlers for other resources
 

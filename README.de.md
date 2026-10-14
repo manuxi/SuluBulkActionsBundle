@@ -7,8 +7,8 @@
 [🇬🇧 English Version](README.md)
 
 Sammelaktionen für Listen im Sulu-Admin: Zeilen markieren, dann in einem Rutsch veröffentlichen, die Veröffentlichung
-zurückziehen, eine Sprache kopieren oder (optional) löschen.
-Artikel (alle Gruppen), Schnipsel, [Testimonials](https://github.com/manuxi/SuluTestimonialsBundle) und [Events](https://github.com/manuxi/SuluEventBundle) funktionieren ohne weiteres (Veröffentlichen und Zurückziehen; Artikel und Schnipsel auch Sprache kopieren); andere Bundles bringen ihren eigenen Handler mit.
+zurückziehen, eine Sprache kopieren oder löschen.
+Artikel (alle Gruppen), Schnipsel, [Testimonials](https://github.com/manuxi/SuluTestimonialsBundle) und [Events](https://github.com/manuxi/SuluEventBundle) funktionieren ohne weiteres mit allen vier Aktionen; andere Bundles bringen ihren eigenen Handler mit.
 
 ![Menü Massen-Aktionen in einer Liste](docs/img/bulk-actions-in-list.png)
 
@@ -37,11 +37,11 @@ Zwei Stufen, damit niemand gesammelt tun kann, was er einzeln nicht darf:
 
 1. **Schalter:** Der Sicherheitskontext `sulu.bulk_actions.actions` („BulkActions“ im Rollenformular) entscheidet, ob
    eine Rolle Sammelaktionen überhaupt nutzen darf. „Live“ erlaubt Veröffentlichen und Zurückziehen, „Bearbeiten“
-   erlaubt Sprache kopieren, „Löschen“ erlaubt Löschen (nur wenn `delete_enabled` an ist, siehe unten). Standardmäßig
+   erlaubt Sprache kopieren, „Löschen“ erlaubt Löschen (außer `delete_enabled` ist ausgeschaltet, siehe unten). Standardmäßig
    hat ihn niemand; im Rollenformular vergeben.
 2. **Einträge:** Jeder Eintrag wird gegen seinen eigenen Sicherheitskontext geprüft, mit derselben Berechtigung („Live“,
    „Bearbeiten“ oder „Löschen“). Bei Artikeln ist das der Kontext der Artikelgruppe (`sulu.article.articles_blog`, ...),
-   bei Schnipseln `sulu.snippet.snippets`. Sprache kopieren prüft „Bearbeiten“ in der Zielsprache. Einträge ohne
+   bei Schnipseln `sulu.snippet.snippets`, bei Testimonials und Events deren eigene Kontexte. Sprache kopieren prüft „Bearbeiten“ in der Zielsprache. Einträge ohne
    Berechtigung werden übersprungen und gemeldet. Das Menü zeigt nur die Aktionen, die in dieser Liste erlaubt sind
    (z. B. nur im Blog-Tab, wenn die Rolle das Recht für Blog hat).
 
@@ -55,23 +55,33 @@ dem Titel des Eintrags. Details: [Ergebnis einer Sammelaktion](docs/results.de.m
 
 ## Sprache kopieren
 
-„Sprache kopieren“ übernimmt den Inhalt einer Sprache für alle markierten Artikel oder Schnipsel in eine andere Sprache,
+„Sprache kopieren“ übernimmt den Inhalt einer Sprache für alle markierten Artikel, Schnipsel, Testimonials oder Events in eine andere Sprache,
 wie „Sprache kopieren“ im Formular. Ein Dialog fragt nach Quell- und Zielsprache. Das Ergebnis ist immer ein Entwurf;
 nichts wird veröffentlicht. Einträge ohne Quellsprache und Einträge, die die Zielsprache schon haben, werden übersprungen
 und mit Titel aufgelistet; der Schalter „Vorhandene Fassungen überschreiben“ (Standard: aus) ersetzt vorhandene Entwürfe.
 Für Seiten gibt es einen Handler, aber noch keine Liste im Admin (der Seitenbaum kann nicht markieren).
 Details: [Sprache kopieren](docs/copy-locale.de.md)
 
+## Löschen
+
+„Löschen“ entfernt nach einer Rückfrage alle markierten Einträge. Die Aktion erscheint nur für Rollen, die das Recht
+„Löschen“ im Kontext „Bulk actions“ und im Kontext der Liste haben; jeder Eintrag wird auf dem Server noch einmal geprüft.
+Artikel und Schnipsel werden mit der Nachricht von Sulu entfernt; Testimonials und Events kommen in den Papierkorb und
+verschwinden aus Suchindex und Aktivitätsprotokoll wie beim Löschen im Formular.
+Details: [Löschen](docs/delete.de.md)
+
 ## Konfiguration
 
 ```yaml
 sulu_bulk_actions:
-    delete_enabled: false        # Sammel-Löschen ist aus; zum Einschalten braucht die Rolle zusätzlich „Löschen“
-    resources:                   # optional; Artikel und Schnipsel kommen von selbst dazu
+    delete_enabled: true         # false nimmt Sammel-Löschen allen weg, egal was die Rollen sagen
+    resources:                   # optional; Artikel, Schnipsel, Testimonials und Events kommen von selbst dazu
         articles:
             view_prefixes: ['sulu_article.article.list_']
-            actions: [publish, unpublish, copy_locale]
+            actions: [publish, unpublish, copy_locale, delete]
 ```
+
+Eine unter `resources` konfigurierte Liste ersetzt die Vorgaben dieser Ressource: `delete` und `copy_locale` dort ebenfalls eintragen.
 
 ## Handler für andere Ressourcen
 

@@ -9,7 +9,7 @@ It does the same as "Copy locale" in the toolbar of the form, only for all selec
 
 ## Workflow
 
-1. Select entries in the list (articles or snippets).
+1. Select entries in the list (articles, snippets, testimonials or events).
 2. "Bulk actions" → "Copy locale".
 3. In the dialog, choose the source language ("From language") and the target language ("To language"). The target cannot be the source.
 4. "OK": the result is shown in a dialog, also when everything worked.
@@ -40,7 +40,7 @@ As for the other bulk actions, there are two levels:
 | Level   | Context                                                                  | Permission                         |
 |---------|--------------------------------------------------------------------------|------------------------------------|
 | Switch  | `sulu.bulk_actions.actions` ("BulkActions" in the role form)             | "Edit"                             |
-| Entry   | Context of the entry (article group, `sulu.snippet.snippets`, webspace)  | "Edit" **in the target language**  |
+| Entry   | Context of the entry (article group, `sulu.snippet.snippets`, `sulu.testimonials.testimonials`, `sulu.events.events`, webspace) | "Edit" **in the target language**  |
 
 If a role is restricted to certain languages in the user settings, the target language counts.
 For pages, the permissions of the single page ("Permissions" tab) are checked as well.
@@ -49,7 +49,7 @@ For pages, the permissions of the single page ("Permissions" tab) are checked as
 
 ## Configuration
 
-Articles and snippets get the action without further configuration. If you set the actions of a list yourself,
+Articles, snippets, testimonials and events get the action without further configuration. If you set the actions of a list yourself,
 add `copy_locale`:
 
 ```yaml

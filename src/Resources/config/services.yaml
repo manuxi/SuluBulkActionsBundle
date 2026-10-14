@@ -1,0 +1,24 @@
+services:
+    sulu_bulk_actions.handler_registry:
+        class: Manuxi\SuluBulkActionsBundle\Handler\BulkActionHandlerRegistry
+
+    Manuxi\SuluBulkActionsBundle\Controller\Admin\BulkActionController:
+        public: true
+        arguments:
+            - '@sulu_bulk_actions.handler_registry'
+            - '@sulu_security.security_checker'
+            - '%sulu_bulk_actions.delete_enabled%'
+            - '@?sulu.core.localization_manager'
+        tags:
+            - { name: controller.service_arguments }
+            - { name: sulu.context, context: admin }
+
+    Manuxi\SuluBulkActionsBundle\Admin\BulkActionsAdmin:
+        arguments:
+            - '@sulu_security.security_checker'
+            - '@sulu_bulk_actions.handler_registry'
+            - '%sulu_bulk_actions.resources%'
+            - '%sulu_bulk_actions.delete_enabled%'
+        tags:
+            - { name: sulu.admin }
+            - { name: sulu.context, context: admin }
