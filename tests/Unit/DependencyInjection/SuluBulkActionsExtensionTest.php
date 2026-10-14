@@ -9,6 +9,7 @@ use Manuxi\SuluBulkActionsBundle\DependencyInjection\SuluBulkActionsExtension;
 use Manuxi\SuluBulkActionsBundle\Handler\ArticleBulkActionHandler;
 use Manuxi\SuluBulkActionsBundle\Handler\ContentEntityBulkActionHandler;
 use Manuxi\SuluBulkActionsBundle\Handler\SnippetBulkActionHandler;
+use Manuxi\SuluBulkActionsBundle\Tests\Fixtures\Entity\Item;
 use Manuxi\SuluBulkActionsBundle\Tests\Fixtures\FakeEntityDomainEvent;
 use Manuxi\SuluBulkActionsBundle\Tests\Fixtures\FakeRemovedDomainEvent;
 use PHPUnit\Framework\TestCase;
@@ -22,10 +23,10 @@ class SuluBulkActionsExtensionTest extends TestCase
     {
         // the bundles of the same family are not installed here: stand-ins for the classes the extension looks for
         $aliases = [
-            'Manuxi\SuluEventBundle\Entity\Event' => \stdClass::class,
+            'Manuxi\SuluEventBundle\Entity\Event' => Item::class,
             'Manuxi\SuluEventBundle\Domain\Event\Event\PublishedEvent' => FakeEntityDomainEvent::class,
             'Manuxi\SuluEventBundle\Domain\Event\Event\RemovedEvent' => FakeRemovedDomainEvent::class,
-            'Manuxi\SuluTestimonialsBundle\Entity\Testimonial' => \stdClass::class,
+            'Manuxi\SuluTestimonialsBundle\Entity\Testimonial' => Item::class,
         ];
 
         foreach ($aliases as $original => $alias) {
