@@ -1,6 +1,6 @@
 {
     "name": "manuxi/sulu-bulk-actions-bundle",
-    "description": "Bulk actions (publish, unpublish, delete) for lists in the Sulu admin.",
+    "description": "Bulk actions (publish, unpublish, copy locale, delete) for lists in the Sulu admin.",
     "type": "symfony-bundle",
     "homepage": "https://github.com/manuxi/SuluBulkActionsBundle",
     "license": "MIT",
@@ -13,7 +13,8 @@
         "symfony/http-foundation": "^6.4 | ^7.0",
         "symfony/http-kernel": "^6.4 | ^7.0",
         "symfony/messenger": "^6.4 | ^7.0",
-        "symfony/translation": "^6.4 | ^7.0"
+        "symfony/translation": "^6.4 | ^7.0",
+        "symfony/yaml": "^6.4 | ^7.0"
     },
     "require-dev": {
         "ext-pdo_sqlite": "*",

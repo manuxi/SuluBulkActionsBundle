@@ -9,7 +9,7 @@ Sie macht dasselbe wie „Sprache kopieren“ in der Werkzeugleiste des Formular
 
 ## Ablauf
 
-1. Einträge in der Liste markieren (Artikel oder Schnipsel).
+1. Einträge in der Liste markieren (Artikel, Schnipsel, Testimonials oder Events).
 2. „Sammelaktionen“ → „Sprache kopieren“.
 3. Im Dialog die Quellsprache („Von Sprache“) und die Zielsprache („In Sprache“) wählen. Die Zielsprache kann nicht gleich der Quellsprache sein.
 4. „OK“: Das Ergebnis erscheint in einem Dialog, auch wenn alles geklappt hat.
@@ -40,7 +40,7 @@ Wie bei den anderen Sammelaktionen gibt es zwei Stufen:
 | Stufe     | Kontext                                                                 | Recht                                  |
 |-----------|-------------------------------------------------------------------------|----------------------------------------|
 | Schalter  | `sulu.bulk_actions.actions` („BulkActions“ im Rollenformular)           | „Bearbeiten“                           |
-| Eintrag   | Kontext des Eintrags (Artikelgruppe, `sulu.snippet.snippets`, Webspace) | „Bearbeiten“ **in der Zielsprache**    |
+| Eintrag   | Kontext des Eintrags (Artikelgruppe, `sulu.snippet.snippets`, `sulu.testimonials.testimonials`, `sulu.events.events`, Webspace) | „Bearbeiten“ **in der Zielsprache**    |
 
 Ist eine Rolle in den Benutzereinstellungen auf bestimmte Sprachen beschränkt, zählt die Zielsprache.
 Bei Seiten werden zusätzlich die Berechtigungen der einzelnen Seite (Tab „Berechtigungen“) geprüft.
@@ -49,7 +49,7 @@ Bei Seiten werden zusätzlich die Berechtigungen der einzelnen Seite (Tab „Ber
 
 ## Konfiguration
 
-Artikel und Schnipsel bekommen die Aktion ohne weitere Konfiguration. Wer die Aktionen einer Liste selbst festlegt,
+Artikel, Schnipsel, Testimonials und Events bekommen die Aktion ohne weitere Konfiguration. Wer die Aktionen einer Liste selbst festlegt,
 nimmt `copy_locale` mit auf:
 
 ```yaml

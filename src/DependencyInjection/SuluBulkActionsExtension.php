@@ -14,9 +14,10 @@ use Sulu\Page\Application\Message\CopyLocalePageMessage;
 use Sulu\Snippet\Application\Message\ApplyWorkflowTransitionSnippetMessage;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\Extension\PrependExtensionInterface;
-use Symfony\Component\DependencyInjection\Loader\XmlFileLoader;
+use Symfony\Component\DependencyInjection\Loader\YamlFileLoader;
 use Symfony\Component\DependencyInjection\Reference;
 use Symfony\Component\HttpKernel\DependencyInjection\Extension;
 use Symfony\Component\Messenger\MessageBusInterface;
@@ -29,37 +30,54 @@ class SuluBulkActionsExtension extends Extension implements PrependExtensionInte
     private const DEFAULT_RESOURCES = [
         'articles' => [
             'view_prefixes' => ['sulu_article.article.list_'],
-            'actions' => ['publish', 'unpublish', 'copy_locale'],
+            'actions' => ['publish', 'unpublish', 'copy_locale', 'delete'],
         ],
         'snippets' => [
             'view_prefixes' => ['sulu_snippet.snippet.list'],
-            'actions' => ['publish', 'unpublish', 'copy_locale'],
+            'actions' => ['publish', 'unpublish', 'copy_locale', 'delete'],
         ],
         'testimonials' => [
             'view_prefixes' => ['sulu_testimonials.testimonials.list'],
-            'actions' => ['publish', 'unpublish'],
+            'actions' => ['publish', 'unpublish', 'copy_locale', 'delete'],
         ],
         'events' => [
             'view_prefixes' => ['sulu_event.event.list'],
-            'actions' => ['publish', 'unpublish'],
+            'actions' => ['publish', 'unpublish', 'copy_locale', 'delete'],
         ],
     ];
 
     /**
-     * Bundles of the same family that work with the repository and the content workflow: publish and unpublish are
-     * handled generically. Registered only if the bundle is installed.
+     * Bundles of the same family that work with the repository, the content manager and the content workflow: all
+     * actions are handled generically. Registered only if the bundle is installed. The domain events keep the activity
+     * log and the search index of the bundle up to date, see ContentEntityBulkActionHandler.
      */
     private const OWN_BUNDLE_ENTITIES = [
-        'testimonials' => ['Manuxi\SuluTestimonialsBundle\Entity\Testimonial', 'sulu.testimonials.testimonials'],
-        'events' => ['Manuxi\SuluEventBundle\Entity\Event', 'sulu.events.events'],
+        'testimonials' => [
+            'entity' => 'Manuxi\SuluTestimonialsBundle\Entity\Testimonial',
+            'security_context' => 'sulu.testimonials.testimonials',
+            'domain_events' => [
+                ContentEntityBulkActionHandler::EVENT_PUBLISHED => 'Manuxi\SuluTestimonialsBundle\Domain\Event\TestimonialPublishedEvent',
+                ContentEntityBulkActionHandler::EVENT_UNPUBLISHED => 'Manuxi\SuluTestimonialsBundle\Domain\Event\TestimonialUnpublishedEvent',
+                ContentEntityBulkActionHandler::EVENT_REMOVED => 'Manuxi\SuluTestimonialsBundle\Domain\Event\TestimonialRemovedEvent',
+            ],
+        ],
+        'events' => [
+            'entity' => 'Manuxi\SuluEventBundle\Entity\Event',
+            'security_context' => 'sulu.events.events',
+            'domain_events' => [
+                ContentEntityBulkActionHandler::EVENT_PUBLISHED => 'Manuxi\SuluEventBundle\Domain\Event\Event\PublishedEvent',
+                ContentEntityBulkActionHandler::EVENT_UNPUBLISHED => 'Manuxi\SuluEventBundle\Domain\Event\Event\UnpublishedEvent',
+                ContentEntityBulkActionHandler::EVENT_REMOVED => 'Manuxi\SuluEventBundle\Domain\Event\Event\RemovedEvent',
+            ],
+        ],
     ];
 
     public function load(array $configs, ContainerBuilder $container): void
     {
         $config = $this->processConfiguration(new Configuration(), $configs);
 
-        $loader = new XmlFileLoader($container, new FileLocator(__DIR__.'/../Resources/config'));
-        $loader->load('services.xml');
+        $loader = new YamlFileLoader($container, new FileLocator(__DIR__.'/../Resources/config'));
+        $loader->load('services.yaml');
 
         $resources = $config['resources'];
         foreach (self::DEFAULT_RESOURCES as $resourceKey => $defaults) {
@@ -104,7 +122,7 @@ class SuluBulkActionsExtension extends Extension implements PrependExtensionInte
                 ->addTag('sulu_bulk_actions.handler'));
         }
 
-        foreach (self::OWN_BUNDLE_ENTITIES as $resourceKey => [$entityClass, $securityContext]) {
+        foreach (self::OWN_BUNDLE_ENTITIES as $resourceKey => $bundle) {
             if (!$this->isInstalled($resourceKey)) {
                 continue;
             }
@@ -112,10 +130,14 @@ class SuluBulkActionsExtension extends Extension implements PrependExtensionInte
             $container->setDefinition('sulu_bulk_actions.handler.'.$resourceKey, (new Definition(ContentEntityBulkActionHandler::class))
                 ->setArguments([
                     $resourceKey,
-                    $entityClass,
-                    $securityContext,
+                    $bundle['entity'],
+                    $bundle['security_context'],
                     new Reference('doctrine.orm.entity_manager'),
                     new Reference('sulu_content.content_workflow'),
+                    new Reference('sulu_content.content_manager'),
+                    new Reference('sulu_activity.domain_event_collector', ContainerInterface::NULL_ON_INVALID_REFERENCE),
+                    new Reference('sulu_trash.trash_manager', ContainerInterface::NULL_ON_INVALID_REFERENCE),
+                    array_filter($bundle['domain_events'], 'class_exists'),
                 ])
                 ->addTag('sulu_bulk_actions.handler'));
         }
@@ -140,7 +162,7 @@ class SuluBulkActionsExtension extends Extension implements PrependExtensionInte
             'articles' => class_exists(ApplyWorkflowTransitionArticleMessage::class),
             'snippets' => class_exists(ApplyWorkflowTransitionSnippetMessage::class),
             'pages' => class_exists(CopyLocalePageMessage::class),
-            default => isset(self::OWN_BUNDLE_ENTITIES[$resourceKey]) && class_exists(self::OWN_BUNDLE_ENTITIES[$resourceKey][0]),
+            default => isset(self::OWN_BUNDLE_ENTITIES[$resourceKey]) && class_exists(self::OWN_BUNDLE_ENTITIES[$resourceKey]['entity']),
         };
     }
 }
