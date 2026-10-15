@@ -60,6 +60,8 @@ wie „Sprache kopieren“ im Formular. Ein Dialog fragt nach Quell- und Zielspr
 nichts wird veröffentlicht. Einträge ohne Quellsprache und Einträge, die die Zielsprache schon haben, werden übersprungen
 und mit Titel aufgelistet; der Schalter „Vorhandene Fassungen überschreiben“ (Standard: aus) ersetzt vorhandene Entwürfe.
 Für Seiten gibt es einen Handler, aber noch keine Liste im Admin (der Seitenbaum kann nicht markieren).
+Die Liste der Formulare des [SuluFormBundle](https://github.com/sulu/SuluFormBundle) bekommt nur diese Aktion (Formulare kennen weder Entwurf noch Veröffentlichung), und nur
+mit einer Version des Bundles, deren `FormManager` `copyLocale()` kennt.
 Details: [Sprache kopieren](docs/copy-locale.de.md)
 
 ## Löschen
