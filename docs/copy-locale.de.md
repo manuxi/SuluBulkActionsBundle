@@ -64,6 +64,12 @@ sulu_bulk_actions:
 keine Einträge markieren, deshalb erscheint die Aktion dort nicht. Ein Projekt mit einer eigenen Seitenliste (Listenansicht mit
 `resourceKey` `pages`) trägt sie unter `resources.pages` ein.
 
+**Formulare:** Die Liste der Formulare des [SuluFormBundle](https://github.com/sulu/SuluFormBundle) (`resourceKey` `forms`, Listenansicht
+`sulu_form.list`) bekommt `copy_locale` ohne weitere Konfiguration, aber nur diese Aktion: Formulare haben weder Entwurf noch
+Veröffentlichung. Der Handler wird nur angelegt, wenn der `FormManager` des Bundles `copyLocale()` kennt. Kopiert werden
+Formulartexte, Empfänger und Feldtexte; Felder, Schlüssel und Reihenfolge bleiben gleich. Anders als bei Inhalten gibt es keinen Entwurf:
+Mit „Vorhandene Fassungen überschreiben“ ist die Zielsprache sofort ersetzt. Berechtigung ist „Bearbeiten“ im Kontext `sulu.form.forms`.
+
 ---
 
 ## Endpunkt

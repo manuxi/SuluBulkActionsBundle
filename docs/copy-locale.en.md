@@ -64,6 +64,12 @@ sulu_bulk_actions:
 entries, so the action does not appear there. A project with its own page list (a list view with `resourceKey` `pages`)
 adds it under `resources.pages`.
 
+**Forms:** the list of the forms of the [SuluFormBundle](https://github.com/sulu/SuluFormBundle) (`resourceKey` `forms`, list view
+`sulu_form.list`) gets `copy_locale` without further configuration, but only this action: forms have neither a draft nor a
+publication. The handler is only created if the `FormManager` of the bundle has `copyLocale()`. The texts of the form,
+its receivers and the texts of its fields are copied; fields, keys and order stay the same. Unlike content there is no draft:
+with "Overwrite existing versions" the target language is replaced at once. The permission is "Edit" in the context `sulu.form.forms`.
+
 ---
 
 ## Endpoint

@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+- Bulk action `copy_locale` for the list of the forms of the SuluFormBundle (`FormBulkActionHandler`, resource key `forms`, list view `sulu_form.list`). The handler and the default list are only registered if the `FormManager` of the installed form bundle has `copyLocale()`.
+
 ## 1.2.0 - 2026-10-14
 
 ### Added

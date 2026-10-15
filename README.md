@@ -57,7 +57,9 @@ title of the entry. Details: [Result of a bulk action](docs/results.en.md)
 in the form. A dialog asks for the source and the target language. The result is always a draft; nothing is published.
 Entries without the source language and entries that already have the target language are skipped and listed by title;
 a switch "Overwrite existing versions" (default: off) replaces existing drafts. Pages have a handler, but no list in
-the admin yet (the page tree cannot select). Details: [Copy locale](docs/copy-locale.en.md)
+the admin yet (the page tree cannot select). The list of the forms of the [SuluFormBundle](https://github.com/sulu/SuluFormBundle)
+gets only this action (forms have neither a draft nor a publication), and only with a version of that bundle whose
+`FormManager` has `copyLocale()`. Details: [Copy locale](docs/copy-locale.en.md)
 
 ## Delete
 

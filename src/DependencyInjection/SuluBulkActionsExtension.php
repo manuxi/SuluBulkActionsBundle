@@ -7,9 +7,11 @@ namespace Manuxi\SuluBulkActionsBundle\DependencyInjection;
 use Manuxi\SuluBulkActionsBundle\Handler\ArticleBulkActionHandler;
 use Manuxi\SuluBulkActionsBundle\Handler\BulkActionHandlerInterface;
 use Manuxi\SuluBulkActionsBundle\Handler\ContentEntityBulkActionHandler;
+use Manuxi\SuluBulkActionsBundle\Handler\FormBulkActionHandler;
 use Manuxi\SuluBulkActionsBundle\Handler\PageBulkActionHandler;
 use Manuxi\SuluBulkActionsBundle\Handler\SnippetBulkActionHandler;
 use Sulu\Article\Application\Message\ApplyWorkflowTransitionArticleMessage;
+use Sulu\Bundle\FormBundle\Manager\FormManager;
 use Sulu\Page\Application\Message\CopyLocalePageMessage;
 use Sulu\Snippet\Application\Message\ApplyWorkflowTransitionSnippetMessage;
 use Symfony\Component\Config\FileLocator;
@@ -43,6 +45,11 @@ class SuluBulkActionsExtension extends Extension implements PrependExtensionInte
         'events' => [
             'view_prefixes' => ['sulu_event.event.list'],
             'actions' => ['publish', 'unpublish', 'copy_locale', 'delete'],
+        ],
+        // forms are no content entities: nothing to publish, and the list of the forms deletes them itself
+        'forms' => [
+            'view_prefixes' => ['sulu_form.list'],
+            'actions' => ['copy_locale'],
         ],
     ];
 
@@ -122,6 +129,16 @@ class SuluBulkActionsExtension extends Extension implements PrependExtensionInte
                 ->addTag('sulu_bulk_actions.handler'));
         }
 
+        // forms: only copy_locale, and only with a form bundle whose form manager can copy a locale
+        if ($this->isInstalled('forms')) {
+            $container->setDefinition(FormBulkActionHandler::class, (new Definition(FormBulkActionHandler::class))
+                ->setArguments([
+                    new Reference('sulu_form.manager.form'),
+                    new Reference('doctrine.orm.entity_manager'),
+                ])
+                ->addTag('sulu_bulk_actions.handler'));
+        }
+
         foreach (self::OWN_BUNDLE_ENTITIES as $resourceKey => $bundle) {
             if (!$this->isInstalled($resourceKey)) {
                 continue;
@@ -162,6 +179,7 @@ class SuluBulkActionsExtension extends Extension implements PrependExtensionInte
             'articles' => class_exists(ApplyWorkflowTransitionArticleMessage::class),
             'snippets' => class_exists(ApplyWorkflowTransitionSnippetMessage::class),
             'pages' => class_exists(CopyLocalePageMessage::class),
+            'forms' => class_exists(FormManager::class) && method_exists(FormManager::class, 'copyLocale'),
             default => isset(self::OWN_BUNDLE_ENTITIES[$resourceKey]) && class_exists(self::OWN_BUNDLE_ENTITIES[$resourceKey]['entity']),
         };
     }

@@ -8,9 +8,11 @@ use Manuxi\SuluBulkActionsBundle\Controller\Admin\BulkActionController;
 use Manuxi\SuluBulkActionsBundle\DependencyInjection\SuluBulkActionsExtension;
 use Manuxi\SuluBulkActionsBundle\Handler\ArticleBulkActionHandler;
 use Manuxi\SuluBulkActionsBundle\Handler\ContentEntityBulkActionHandler;
+use Manuxi\SuluBulkActionsBundle\Handler\FormBulkActionHandler;
 use Manuxi\SuluBulkActionsBundle\Handler\SnippetBulkActionHandler;
 use Manuxi\SuluBulkActionsBundle\Tests\Fixtures\Entity\Item;
 use Manuxi\SuluBulkActionsBundle\Tests\Fixtures\FakeEntityDomainEvent;
+use Manuxi\SuluBulkActionsBundle\Tests\Fixtures\FakeFormManager;
 use Manuxi\SuluBulkActionsBundle\Tests\Fixtures\FakeRemovedDomainEvent;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
@@ -27,6 +29,7 @@ class SuluBulkActionsExtensionTest extends TestCase
             'Manuxi\SuluEventBundle\Domain\Event\Event\PublishedEvent' => FakeEntityDomainEvent::class,
             'Manuxi\SuluEventBundle\Domain\Event\Event\RemovedEvent' => FakeRemovedDomainEvent::class,
             'Manuxi\SuluTestimonialsBundle\Entity\Testimonial' => Item::class,
+            'Sulu\Bundle\FormBundle\Manager\FormManager' => FakeFormManager::class,
         ];
 
         foreach ($aliases as $original => $alias) {
@@ -46,6 +49,21 @@ class SuluBulkActionsExtensionTest extends TestCase
             $this->assertArrayHasKey($resourceKey, $resources);
             $this->assertSame(['publish', 'unpublish', 'copy_locale', 'delete'], $resources[$resourceKey]['actions'], $resourceKey);
         }
+    }
+
+    public function testFormsGetOnlyCopyLocaleInTheirList(): void
+    {
+        $container = $this->load();
+
+        $this->assertSame(
+            ['view_prefixes' => ['sulu_form.list'], 'actions' => ['copy_locale']],
+            $container->getParameter('sulu_bulk_actions.resources')['forms'],
+        );
+
+        $definition = $container->getDefinition(FormBulkActionHandler::class);
+        $this->assertTrue($definition->hasTag('sulu_bulk_actions.handler'));
+        $this->assertSame('sulu_form.manager.form', (string) $definition->getArgument(0));
+        $this->assertSame('doctrine.orm.entity_manager', (string) $definition->getArgument(1));
     }
 
     public function testDeleteIsOnByDefaultAndCanBeSwitchedOff(): void
