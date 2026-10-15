@@ -60,7 +60,11 @@ class BulkActionController
 
         $data = json_decode($request->getContent(), true);
         $data = \is_array($data) ? $data : [];
-        $ids = array_values(array_filter(\is_array($data['ids'] ?? null) ? $data['ids'] : [], 'is_string'));
+        // UUIDs arrive as strings, the IDs of entities like the forms as integers
+        $ids = array_map('strval', array_values(array_filter(
+            \is_array($data['ids'] ?? null) ? $data['ids'] : [],
+            static fn (mixed $id): bool => \is_string($id) || \is_int($id),
+        )));
 
         if ([] === $ids) {
             return new JsonResponse(['error' => 'No IDs provided.'], Response::HTTP_BAD_REQUEST);

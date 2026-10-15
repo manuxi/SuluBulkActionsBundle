@@ -26,6 +26,26 @@ class BulkActionControllerCopyLocaleTest extends TestCase
     /** @var list<array{string, string}> context and permission of the check of the bulk context */
     private array $bulkChecks = [];
 
+    public function testIntegerIdsAreAccepted(): void
+    {
+        // the list sends the IDs as they are: integers for entities like the forms, UUID strings for content entities
+        $handler = new FakeLocaleCopyHandler(['1' => ['de'], '2' => ['de'], 'uuid' => ['de']]);
+
+        $response = $this->copy($handler, [1, 2, 'uuid', 1.5, null, ['x']], ['sourceLocale' => 'de', 'targetLocale' => 'en']);
+
+        $this->assertSame(200, $response->getStatusCode());
+        $this->assertSame(['1', '2', 'uuid'], $handler->handledIds);
+        $this->assertSame(3, $this->decode($response)['done']);
+    }
+
+    public function testNoUsableIdsIsABadRequest(): void
+    {
+        $response = $this->copy(new FakeLocaleCopyHandler([]), [1.5, null, ['x']], ['sourceLocale' => 'de', 'targetLocale' => 'en']);
+
+        $this->assertSame(400, $response->getStatusCode());
+        $this->assertSame('No IDs provided.', $this->decode($response)['error']);
+    }
+
     public function testCopiesEntriesWithTheSourceAndSkipsTheOthersWithTheirTitles(): void
     {
         $handler = new FakeLocaleCopyHandler(
@@ -165,7 +185,7 @@ class BulkActionControllerCopyLocaleTest extends TestCase
     }
 
     /**
-     * @param list<string> $ids
+     * @param list<mixed> $ids
      * @param array<string, mixed> $body without the IDs
      * @param array<string, bool> $permissions security context => granted (default: granted)
      */
