@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+
+- Entities with integer IDs (the forms) failed with "No IDs provided.": the controller only accepted string IDs, but the list sends integers for them. Integer IDs are accepted and handled as strings.
+
 ## 1.3.0 - 2026-10-15
 
 ### Added
