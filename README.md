@@ -9,7 +9,7 @@
 Bulk actions for lists in the Sulu admin: mark rows, then publish, unpublish, copy a locale or delete them in one go.
 Articles (all groups), snippets, [testimonials](https://github.com/manuxi/SuluTestimonialsBundle) and [events](https://github.com/manuxi/SuluEventBundle) work out of the box with all four actions; other bundles bring their own handler.
 
-![Bulk actions menu in a list](docs/img/bulk-actions-in-list.png)
+![Bulk actions menu in a list](docs/img/bulk-actions-in-list.en.png)
 
 This is the `3.x` branch for Sulu 3.0. The `2.x` branch is the version for Sulu 2.6.
 
@@ -42,6 +42,8 @@ Two levels, so nobody can do in bulk what they may not do one by one:
    for snippets `sulu.snippet.snippets`, for testimonials and events their own contexts. Copy locale checks "Edit" in the target language. Entries without permission
    are skipped and reported. The dropdown only shows the actions the user may use in that list (for example only in the
    Blog tab if they have the right for Blog).
+
+![Permissions](docs/img/permissions.en.png)
 
 New article groups need nothing: their contexts already exist in the role form.
 

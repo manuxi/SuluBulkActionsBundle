@@ -10,7 +10,7 @@ Sammelaktionen für Listen im Sulu-Admin: Zeilen markieren, dann in einem Rutsch
 zurückziehen, eine Sprache kopieren oder löschen.
 Artikel (alle Gruppen), Schnipsel, [Testimonials](https://github.com/manuxi/SuluTestimonialsBundle) und [Events](https://github.com/manuxi/SuluEventBundle) funktionieren ohne weiteres mit allen vier Aktionen; andere Bundles bringen ihren eigenen Handler mit.
 
-![Menü Massen-Aktionen in einer Liste](docs/img/bulk-actions-in-list.png)
+![Menü Massen-Aktionen in einer Liste](docs/img/bulk-actions-in-list.de.png)
 
 Dies ist der Branch `3.x` für Sulu 3.0. Der Branch `2.x` ist die Version für Sulu 2.6.
 
@@ -44,6 +44,8 @@ Zwei Stufen, damit niemand gesammelt tun kann, was er einzeln nicht darf:
    bei Schnipseln `sulu.snippet.snippets`, bei Testimonials und Events deren eigene Kontexte. Sprache kopieren prüft „Bearbeiten“ in der Zielsprache. Einträge ohne
    Berechtigung werden übersprungen und gemeldet. Das Menü zeigt nur die Aktionen, die in dieser Liste erlaubt sind
    (z. B. nur im Blog-Tab, wenn die Rolle das Recht für Blog hat).
+
+![Permissions](docs/img/permissions.en.png)
 
 Neue Artikelgruppen brauchen nichts: Ihre Kontexte stehen schon im Rollenformular.
 
