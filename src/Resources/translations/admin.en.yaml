@@ -22,7 +22,7 @@ sulu_bulk_actions:
     copy_locale_result_title: "Locale copied"
     copy_locale_done: "{count, plural, one {# entry was copied to {language}.} other {# entries were copied to {language}.}} The copies are drafts: check them in {language} and publish them there."
     copy_locale_missing: "{count, plural, one {# entry has no {language} version and was skipped:} other {# entries have no {language} version and were skipped:}}"
-    copy_locale_existing: "{count, plural, one {# entry already has a {language} version and was not overwritten} other {# entries already have a {language} version and were not overwritten}} (check “Overwrite existing versions” to replace):"
+    copy_locale_existing: "{count, plural, one {# entry already has a version in {language} and was not overwritten} other {# entries already have a version in {language} and were not overwritten}} (check “Overwrite existing versions” to replace):"
     result_title_partial: "Bulk action partly done"
     result_title_none: "Bulk action not done"
     missing_locale: "{count, plural, one {# entry has no {language} version and was skipped.} other {# entries have no {language} version and were skipped.}} Choose another language at the top or create that version first."

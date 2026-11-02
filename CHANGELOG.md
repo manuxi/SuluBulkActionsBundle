@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+
+- English message after copying a locale: "already has a English version" now reads "already has a version in English".
+
 ## 1.3.1 - 2026-10-15
 
 ### Fixed
